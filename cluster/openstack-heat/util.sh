@@ -118,13 +118,22 @@ function upload-resources() {
   RELEASE_TAR_LOCATION=$( (ls -t "${locations[@]}" 2>/dev/null || true) | head -1 )
   RELEASE_TAR_PATH=$(dirname ${RELEASE_TAR_LOCATION})
 
-  echo "[INFO] Uploading ${KUBERNETES_RELEASE_TAR}"
-  swift upload kubernetes ${RELEASE_TAR_PATH}/${KUBERNETES_RELEASE_TAR} \
-    --object-name kubernetes-server.tar.gz
 
-  echo "[INFO] Uploading kubernetes-salt.tar.gz"
-  swift upload kubernetes ${RELEASE_TAR_PATH}/kubernetes-salt.tar.gz \
-    --object-name kubernetes-salt.tar.gz
+  local tar_status=$(swift stat kubernetes $KUBERNETES_RELEASE_TAR)
+
+  if [[ ! $tar_status ]]; then
+    echo "[INFO] Uploading ${KUBERNETES_RELEASE_TAR}"
+    swift upload kubernetes ${RELEASE_TAR_PATH}/${KUBERNETES_RELEASE_TAR} \
+      --object-name kubernetes-server.tar.gz
+  fi
+
+  tar_status=$(swift stat kubernetes kubernetes-salt.tar.gz)
+  
+  if [[ ! $tar_status ]]; then
+    echo "[INFO] Uploading kubernetes-salt.tar.gz"
+    swift upload kubernetes ${RELEASE_TAR_PATH}/kubernetes-salt.tar.gz \
+      --object-name kubernetes-salt.tar.gz
+  fi
 }
 
 # Create a new key pair for use with servers.
